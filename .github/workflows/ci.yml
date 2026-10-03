@@ -1,0 +1,35 @@
+name: Homebrew cask
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cask-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_ANALYTICS: "1"
+      HOMEBREW_NO_ENV_HINTS: "1"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Tap this checkout
+        run: |
+          brew --version
+          brew tap --custom-remote leshmesh/tap "$GITHUB_WORKSPACE"
+          if brew command trust >/dev/null 2>&1; then
+            brew trust --cask leshmesh/tap/app-layout
+          fi
+      - name: Check cask syntax and style
+        run: |
+          ruby -c Casks/app-layout.rb
+          brew style --cask leshmesh/tap/app-layout
+          brew info --cask --json=v2 leshmesh/tap/app-layout
+      - name: Test install, real upgrade, preserved settings, and removal
+        run: python3 scripts/test_install.py

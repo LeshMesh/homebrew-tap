@@ -8,7 +8,7 @@ cask "app-layout" do
   homepage "https://github.com/LeshMesh/app-layout"
 
   depends_on arch: :arm64
-  depends_on macos: ">= :tahoe"
+  depends_on macos: :tahoe
 
   app "AppLayout.app"
 
